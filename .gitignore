@@ -1,0 +1,14 @@
+# IDE cache
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+bin/
+obj/
+
+# Logs and diagnostics
+*.log
+*.tlog
