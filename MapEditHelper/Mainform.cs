@@ -1,5 +1,7 @@
-using System.Drawing.Imaging;
+﻿using System.Drawing.Imaging;
 using System.Text.RegularExpressions;
+using System.Reflection;
+using System.IO;
 
 namespace MapEditHelper
 {
@@ -8,6 +10,8 @@ namespace MapEditHelper
         private Bitmap? sourceImage;
         private Dictionary<string, Rectangle> tilePositions = new Dictionary<string, Rectangle>();
         private MenuStrip? menuStrip1; // Make menuStrip1 nullable
+        private List<string[]> parsedRows = new List<string[]>();
+        private TilePreviewForm? tilePreviewForm;
 
         private const int TILES_PER_ROW = 24;
         private const int TILES_PER_SECTION = 5;
@@ -17,11 +21,12 @@ namespace MapEditHelper
         public Mainform()
         {
             InitializeComponent();
+
+            // Ensure window icon is loaded from bundled icon file
+            TrySetAppIcon();
             
             // Existing button click handlers
-            button1.Click += Button1_Click;
-            button2.Click += Button2_Click;
-            button3.Click += Button3_Click;
+            richTextBox1.TextChanged += RichTextBox1_TextChanged;
             
             // Set form properties for menu
             this.MainMenuStrip = menuStrip1;
@@ -35,10 +40,10 @@ namespace MapEditHelper
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     sourceImage = new Bitmap(ofd.FileName);
-                    pictureBox1.Image = sourceImage;
-                    pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
 
                     InitializeTilePositions();
+                    ShowTilePreview(sourceImage);
+                    GenerateFromText(); // update preview if map text already exists
                 }
             }
         }
@@ -47,6 +52,7 @@ namespace MapEditHelper
         {
             if (sourceImage == null) return;
 
+            tilePositions.Clear();
             int tileSize = 16;
             int tilesPerRow = sourceImage.Width / tileSize;
             int rows = sourceImage.Height / tileSize;
@@ -62,15 +68,36 @@ namespace MapEditHelper
             }
         }
 
-        private void Button2_Click(object? sender, EventArgs e)
+        private void GenerateFromText(bool showWarnings = false)
         {
-            if (sourceImage == null || string.IsNullOrWhiteSpace(richTextBox1.Text))
+            if (string.IsNullOrWhiteSpace(richTextBox1.Text))
+            {
+                parsedRows.Clear();
+                totalSections = 0;
+                currentSection = 0;
+                ClearPreview();
+                UpdateSectionLabel();
+                return;
+            }
+
+            if (sourceImage == null)
                 return;
 
-            List<string[]> allRows = ParseInput(richTextBox1.Text);
-            if (allRows.Count == 0) return;
+            parsedRows = ParseInput(richTextBox1.Text);
+            if (parsedRows.Count == 0)
+            {
+                ClearPreview();
+                totalSections = 0;
+                currentSection = 0;
+                UpdateSectionLabel();
+                if (showWarnings)
+                {
+                    MessageBox.Show("No rows found in the map text. Expected lines like 'Row { 0x00, 0x01, ... }'.", "No map rows detected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                return;
+            }
 
-            totalSections = (int)Math.Ceiling(allRows.Count / (double)TILES_PER_SECTION);
+            totalSections = (int)Math.Ceiling(parsedRows.Count / (double)TILES_PER_SECTION);
             currentSection = 0; // Reset to first section
             UpdatePreview();
             UpdateSectionLabel(); // Update the section label
@@ -78,9 +105,7 @@ namespace MapEditHelper
 
         private void UpdatePreview()
         {
-            if (sourceImage == null) return;
-
-            List<string[]> allRows = ParseInput(richTextBox1.Text);
+            if (sourceImage == null || parsedRows.Count == 0) return;
             int tileSize = 16;
 
             using (Bitmap resultImage = new Bitmap(TILES_PER_ROW * tileSize, TILES_PER_SECTION * tileSize))
@@ -89,20 +114,20 @@ namespace MapEditHelper
                 g.Clear(Color.White); // Clear background
 
                 int startRow = currentSection * TILES_PER_SECTION;
-                int endRow = Math.Min(startRow + TILES_PER_SECTION, allRows.Count);
+                int endRow = Math.Min(startRow + TILES_PER_SECTION, parsedRows.Count);
 
                 for (int rowIndex = startRow; rowIndex < endRow; rowIndex++)
                 {
-                    string[] hexValues = allRows[rowIndex];
+                    string[] hexValues = parsedRows[rowIndex];
                     for (int i = 0; i < Math.Min(hexValues.Length, TILES_PER_ROW); i++)
                     {
-                        string hex = hexValues[i].Trim().ToUpper();
-                        if (tilePositions.ContainsKey(hex))
+                        string hex = hexValues[i].Trim().ToUpper().PadLeft(2, '0');
+                        if (tilePositions.TryGetValue(hex, out Rectangle sourceRect))
                         {
                             int destX = i * tileSize;
                             int destY = (rowIndex - startRow) * tileSize;
                             Rectangle destRect = new Rectangle(destX, destY, tileSize, tileSize);
-                            g.DrawImage(sourceImage, destRect, tilePositions[hex], GraphicsUnit.Pixel);
+                            g.DrawImage(sourceImage, destRect, sourceRect, GraphicsUnit.Pixel);
                         }
                     }
                 }
@@ -113,22 +138,29 @@ namespace MapEditHelper
             }
         }
 
+        private void ClearPreview()
+        {
+            pictureBox2.Image?.Dispose();
+            pictureBox2.Image = null;
+        }
+
         private List<string[]> ParseInput(string input)
         {
             List<string[]> result = new List<string[]>();
 
-            // Match content between Row { and }
-            string pattern = @"Row\s*\{([^}]+)\}";
-            MatchCollection matches = Regex.Matches(input, pattern);
+            // Match content between Row { and }, regardless of casing
+            const string pattern = @"row\s*\{([^}]*)\}";
+            MatchCollection matches = Regex.Matches(input, pattern, RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
             foreach (Match match in matches)
             {
                 if (match.Groups.Count > 1)
                 {
                     string rowContent = match.Groups[1].Value.Trim();
-                    // Extract hex values, removing "0x" prefix
-                    string[] hexValues = rowContent.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(x => x.Replace("0x", ""))
+                    // Extract hex values, removing "0x" prefix (any casing) and normalizing to two digits
+                    string[] hexValues = Regex.Matches(rowContent, @"(?:0x|0X)?([0-9a-fA-F]{1,2})")
+                        .Cast<Match>()
+                        .Select(m => m.Groups[1].Value.ToUpper().PadLeft(2, '0'))
                         .ToArray();
 
                     if (hexValues.Length > 0)
@@ -149,6 +181,7 @@ namespace MapEditHelper
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     richTextBox1.Text = File.ReadAllText(ofd.FileName);
+                    GenerateFromText(showWarnings: true);
                 }
             }
         }
@@ -182,7 +215,9 @@ namespace MapEditHelper
         // Add these new methods
         private void UpdateSectionLabel()
         {
-            lblSectionNumber.Text = $"Section: {currentSection + 1}/{totalSections}";
+            lblSectionNumber.Text = totalSections > 0
+                ? $"Section: {currentSection + 1}/{totalSections}"
+                : "Section: 0/0";
             btnPrevSection.Enabled = currentSection > 0;
             btnNextSection.Enabled = currentSection < totalSections - 1;
         }
@@ -204,6 +239,51 @@ namespace MapEditHelper
                 currentSection--;
                 UpdatePreview();
                 UpdateSectionLabel();
+            }
+        }
+
+        private void RichTextBox1_TextChanged(object? sender, EventArgs e)
+        {
+            GenerateFromText(); // auto-refresh when text changes
+        }
+
+        private void ShowTilePreview(Bitmap image)
+        {
+            tilePreviewForm?.Close();
+            tilePreviewForm?.Dispose();
+
+            tilePreviewForm = new TilePreviewForm();
+            if (this.Icon != null)
+            {
+                tilePreviewForm.Icon = this.Icon;
+            }
+            tilePreviewForm.SetImage(image);
+            tilePreviewForm.Show(this);
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            tilePreviewForm?.Close();
+            base.OnFormClosing(e);
+        }
+
+        private void TrySetAppIcon()
+        {
+            try
+            {
+                string iconPath = Path.Combine(AppContext.BaseDirectory, "rikako.ico");
+                if (File.Exists(iconPath))
+                {
+                    Icon = new Icon(iconPath);
+                }
+                else
+                {
+                    Icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
+                }
+            }
+            catch
+            {
+                // Ignore icon failures to avoid crashing the UI
             }
         }
     }

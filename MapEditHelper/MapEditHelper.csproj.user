@@ -4,5 +4,8 @@
     <Compile Update="Mainform.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="TilePreviewForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

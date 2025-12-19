@@ -5,8 +5,6 @@ namespace MapEditHelper
     partial class Mainform
     {
         private System.ComponentModel.IContainer components = null;
-        // Add this line to declare mainMenuStrip
-        private MenuStrip mainMenuStrip;
 
         protected override void Dispose(bool disposing)
         {
@@ -21,52 +19,22 @@ namespace MapEditHelper
 
         private void InitializeComponent()
         {
-            button1 = new Button();
-            pictureBox1 = new PictureBox();
-            button2 = new Button();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Mainform));
             richTextBox1 = new RichTextBox();
-            button3 = new Button();
             tableLayoutPanel1 = new TableLayoutPanel();
             pictureBox2 = new PictureBox();
             panel1 = new Panel();
+            btnPrevSection = new Button();
+            lblSectionNumber = new Label();
+            btnNextSection = new Button();
             menuStrip1 = new MenuStrip();
-            ToolStripMenuItem fileMenu = new ToolStripMenuItem("File");
-            ToolStripMenuItem helpMenu = new ToolStripMenuItem("Help");
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            fileMenu = new ToolStripMenuItem();
+            helpMenu = new ToolStripMenuItem();
             tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             panel1.SuspendLayout();
+            menuStrip1.SuspendLayout();
             SuspendLayout();
-            // 
-            // button1
-            // 
-            button1.Location = new Point(832, 112);
-            button1.Margin = new Padding(2);
-            button1.Name = "button1";
-            button1.Size = new Size(110, 27);
-            button1.TabIndex = 0;
-            button1.Text = "LoadTitleMap";
-            button1.UseVisualStyleBackColor = true;
-            // 
-            // pictureBox1
-            // 
-            pictureBox1.Location = new Point(496, 16);
-            pictureBox1.Margin = new Padding(2);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(320, 160);
-            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox1.TabIndex = 1;
-            pictureBox1.TabStop = false;
-            // 
-            // button2
-            // 
-            button2.Location = new Point(832, 64);
-            button2.Margin = new Padding(2);
-            button2.Name = "button2";
-            button2.Size = new Size(90, 27);
-            button2.TabIndex = 3;
-            button2.Text = "Generate";
-            button2.UseVisualStyleBackColor = true;
             // 
             // richTextBox1
             // 
@@ -75,20 +43,10 @@ namespace MapEditHelper
             richTextBox1.Location = new Point(16, 16);
             richTextBox1.Margin = new Padding(2);
             richTextBox1.Name = "richTextBox1";
-            richTextBox1.Size = new Size(465, 161);
+            richTextBox1.Size = new Size(967, 161);
             richTextBox1.TabIndex = 4;
             richTextBox1.Text = "";
             richTextBox1.WordWrap = false;
-            // 
-            // button3
-            // 
-            button3.Location = new Point(832, 16);
-            button3.Margin = new Padding(2);
-            button3.Name = "button3";
-            button3.Size = new Size(90, 27);
-            button3.TabIndex = 5;
-            button3.Text = "Load Map";
-            button3.UseVisualStyleBackColor = true;
             // 
             // tableLayoutPanel1
             // 
@@ -122,11 +80,10 @@ namespace MapEditHelper
             // 
             // panel1
             // 
-            panel1.Controls.Add(button1);
-            panel1.Controls.Add(button2);
-            panel1.Controls.Add(button3);
             panel1.Controls.Add(richTextBox1);
-            panel1.Controls.Add(pictureBox1);
+            panel1.Controls.Add(btnPrevSection);
+            panel1.Controls.Add(lblSectionNumber);
+            panel1.Controls.Add(btnNextSection);
             panel1.Dock = DockStyle.Fill;
             panel1.Location = new Point(2, 363);
             panel1.Margin = new Padding(2);
@@ -134,64 +91,64 @@ namespace MapEditHelper
             panel1.Size = new Size(1006, 237);
             panel1.TabIndex = 0;
             // 
-            // menuStrip1
-            // 
-            menuStrip1 = new MenuStrip();
-            mainMenuStrip = menuStrip1;
-            fileMenu = new ToolStripMenuItem("File");
-            helpMenu = new ToolStripMenuItem("Help");
-
-            // Add menu items to File menu
-            fileMenu.DropDownItems.AddRange(new ToolStripItem[] {
-                new ToolStripMenuItem("Load Tilemap", null, new EventHandler(LoadTilemap_Click)),
-                new ToolStripMenuItem("Load Map", null, new EventHandler(LoadMap_Click)),
-                new ToolStripSeparator(),
-                new ToolStripMenuItem("Exit", null, new EventHandler(Exit_Click))
-            });
-
-            // Add menu items to Help menu
-            helpMenu.DropDownItems.AddRange(new ToolStripItem[] {
-                new ToolStripMenuItem("About", null, new EventHandler(About_Click))
-            });
-
-            // Add menus to menu strip
-            menuStrip1.Items.AddRange(new ToolStripItem[] { fileMenu, helpMenu });
-
-            // Add menu strip to form
-            Controls.Add(menuStrip1);
-            MainMenuStrip = menuStrip1;
-            // 
             // btnPrevSection
             // 
-            btnPrevSection = new Button();
-            btnPrevSection.Location = new Point(16, 200);
-            btnPrevSection.Size = new Size(90, 27);
+            btnPrevSection.Location = new Point(16, 197);
             btnPrevSection.Name = "btnPrevSection";
+            btnPrevSection.Size = new Size(90, 27);
+            btnPrevSection.TabIndex = 5;
             btnPrevSection.Text = "< Previous";
             btnPrevSection.UseVisualStyleBackColor = true;
             btnPrevSection.Click += PreviousSection_Click;
-            panel1.Controls.Add(btnPrevSection);
             // 
             // lblSectionNumber
             // 
-            lblSectionNumber = new Label();
-            lblSectionNumber.Location = new Point(116, 204);
-            lblSectionNumber.Size = new Size(100, 20);
+            lblSectionNumber.Location = new Point(442, 200);
             lblSectionNumber.Name = "lblSectionNumber";
-            lblSectionNumber.Text = "Section: 1/1";
+            lblSectionNumber.Size = new Size(100, 20);
+            lblSectionNumber.TabIndex = 6;
+            lblSectionNumber.Text = "Section: 0/0";
             lblSectionNumber.TextAlign = ContentAlignment.MiddleCenter;
-            panel1.Controls.Add(lblSectionNumber);
             // 
             // btnNextSection
             // 
-            btnNextSection = new Button();
-            btnNextSection.Location = new Point(226, 200);
-            btnNextSection.Size = new Size(90, 27);
+            btnNextSection.Location = new Point(881, 197);
             btnNextSection.Name = "btnNextSection";
+            btnNextSection.Size = new Size(90, 27);
+            btnNextSection.TabIndex = 7;
             btnNextSection.Text = "Next >";
             btnNextSection.UseVisualStyleBackColor = true;
             btnNextSection.Click += NextSection_Click;
-            panel1.Controls.Add(btnNextSection);
+            // 
+            // menuStrip1
+            // 
+            menuStrip1.ImageScalingSize = new Size(20, 20);
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileMenu, helpMenu });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new Size(1010, 28);
+            menuStrip1.TabIndex = 0;
+            // 
+            // fileMenu
+            // 
+            fileMenu.Name = "fileMenu";
+            fileMenu.Size = new Size(46, 24);
+            fileMenu.Text = "&File";
+            fileMenu.DropDownItems.AddRange(new ToolStripItem[] {
+                new ToolStripMenuItem("&Load Tilemap", null, new EventHandler(LoadTilemap_Click)),
+                new ToolStripMenuItem("Load &Map", null, new EventHandler(LoadMap_Click)),
+                new ToolStripSeparator(),
+                new ToolStripMenuItem("E&xit", null, new EventHandler(Exit_Click))
+            });
+            // 
+            // helpMenu
+            // 
+            helpMenu.Name = "helpMenu";
+            helpMenu.Size = new Size(55, 24);
+            helpMenu.Text = "&Help";
+            helpMenu.DropDownItems.AddRange(new ToolStripItem[] {
+                new ToolStripMenuItem("&About", null, new EventHandler(About_Click))
+            });
             // 
             // Mainform
             // 
@@ -199,30 +156,32 @@ namespace MapEditHelper
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1010, 602);
             Controls.Add(tableLayoutPanel1);
+            Controls.Add(menuStrip1);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            MainMenuStrip = menuStrip1;
             Margin = new Padding(2);
             MinimumSize = new Size(804, 489);
             Name = "Mainform";
             Text = "Rikako";
-            this.Icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             tableLayoutPanel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             panel1.ResumeLayout(false);
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
 
-        private Button button1;
-        private PictureBox pictureBox1;
-        private Button button2;
         private RichTextBox richTextBox1;
-        private Button button3;
         private TableLayoutPanel tableLayoutPanel1;
         private Panel panel1;
         private PictureBox pictureBox2;
         private Button btnPrevSection;
         private Button btnNextSection;
         private Label lblSectionNumber;
+        private ToolStripMenuItem fileMenu;
+        private ToolStripMenuItem helpMenu;
     }
 }
